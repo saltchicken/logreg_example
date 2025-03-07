@@ -5,7 +5,7 @@ import joblib
 
 def train(output_file):
 
-    with open("data.json", "r", encoding="utf-8") as file:
+    with open("data/data.json", "r", encoding="utf-8") as file:
         data = json.load(file)
 
     # Convert text to vector representations
@@ -16,7 +16,7 @@ def train(output_file):
     num_clusters = 2  # Adjust as needed
     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
     kmeans.fit(X)
-    joblib.dump(kmeans, f"{output_file}.pkl", compress=3)
+    joblib.dump(kmeans, f"models/{output_file}.pkl", compress=3)
 
 # def print_model():
 #     # Print clusters
@@ -33,7 +33,7 @@ def train(output_file):
 def predict(text):
     model = SentenceTransformer("all-MiniLM-L6-v2")  # all-mpnet-base-v2
     text_vector = model.encode(text)
-    kmeans = joblib.load("model.pkl")
+    kmeans = joblib.load("models/kmeans_model.pkl")
     cluster_id = kmeans.predict([text_vector])[0]
     return cluster_id
 

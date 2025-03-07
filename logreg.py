@@ -6,7 +6,7 @@ import json
 import joblib
 
 def train(output_file):
-    with open("data.json", "r") as f:
+    with open("data/data.json", "r") as f:
         data = json.load(f)
 
     labels = {
@@ -23,7 +23,7 @@ def train(output_file):
 
     clf = LogisticRegression()
     clf.fit(X_train, y_train)
-    joblib.dump(clf, f"{output_file}.pkl")
+    joblib.dump(clf, f"models/{output_file}.pkl")
 
 def test():
 
@@ -34,7 +34,7 @@ def test():
 
 
 def predict(text):
-    clf = joblib.load("logreg_model.pkl")
+    clf = joblib.load("models/logreg_model.pkl")
     model = SentenceTransformer("all-MiniLM-L6-v2") # all-mpnet-base-v2
     text_vector = model.encode(text)
     prediction = clf.predict([text_vector])
