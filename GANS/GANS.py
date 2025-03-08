@@ -7,6 +7,9 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
 
+torch.backends.cudnn.benchmark = True
+
+
 class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
@@ -43,8 +46,8 @@ class Discriminator(nn.Module):
         x = self.sigmoid(self.fc4(x))
         return x
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-generator = Generator().to(device)
-discriminator = Discriminator().to(device)
+generator = Generator().to(device, memory_format=torch.channels_last)
+discriminator = Discriminator().to(device, memory_format=torch.channels_last)
 
 # Loss function
 criterion = nn.BCELoss()
@@ -52,18 +55,19 @@ criterion = nn.BCELoss()
 # Optimizers
 lr = 0.0002
 beta1 = 0.5  # beta1 for Adam optimizer
-optimizer_g = optim.Adam(generator.parameters(), lr=lr, betas=(beta1, 0.999))
-optimizer_d = optim.Adam(discriminator.parameters(), lr=lr, betas=(beta1, 0.999))
+optimizer_g = optim.Adam(generator.parameters(), lr=lr, betas=(beta1, 0.999), fused=True)
+optimizer_d = optim.Adam(discriminator.parameters(), lr=lr, betas=(beta1, 0.999), fused=True)
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
 
 train_dataset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=512, shuffle=True, num_workers=8, pin_memory=True)
 
 num_epochs = 10000
 for epoch in range(num_epochs):
     for i, (imgs, _) in enumerate(train_loader):
-        real_imgs = imgs.to(device)
+        print(f"Epoch {epoch}, Batch {i}")
+        real_imgs = imgs.to(device, memory_format=torch.channels_last)
         batch_size = real_imgs.size(0)
 
         # Create labels
